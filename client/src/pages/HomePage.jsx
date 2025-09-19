@@ -7,10 +7,14 @@ function HomePage() {
   const [userSelected, setUserSelected] = React.useState(false)
   return (
     <div className="h-screen w-screen flex bg-gray-900 text-gray-100">
-      <SideBar />
+      <SideBar userSelected={userSelected} setUserSelected={setUserSelected} />
       <div className="flex-1 flex">
-        <ChatSection />
-        <RightSidebar />
+        {userSelected && (
+          <>
+            <ChatSection userSelected={userSelected} setUserSelected={setUserSelected} />
+            <RightSidebar />
+          </>
+        )}
       </div>
     </div>
   )
