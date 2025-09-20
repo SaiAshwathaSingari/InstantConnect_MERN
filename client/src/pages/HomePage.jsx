@@ -12,7 +12,7 @@ function HomePage() {
         {userSelected && (
           <>
             <ChatSection userSelected={userSelected} setUserSelected={setUserSelected} />
-            <RightSidebar />
+            <RightSidebar userSelected={userSelected}/>
           </>
         )}
       </div>
