@@ -14,9 +14,10 @@ function App() {
       <Route path='/' element={<HomePage/>}/>
       <Route path='/login' element={<LoginPage/>}/>
       <Route path='/profile' element={<ProfilePage/>}/>
+      
     </Routes>
     </>
-  )
+  ) 
 }
 
 export default App
