@@ -2,6 +2,8 @@ import express, { application } from 'express';
 import cors from 'cors';
 import http from 'http';
 import { connectDB } from './lib/db_connect.js';
+import userRouter from './routes/userRoutes.js';
+
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -17,6 +19,8 @@ app.use(cors());
 app.get('/api/status',(req,res)=>{
   res.send("Server is running")
 })
+//routes of User Router
+app.use('/api/user',userRouter);
 //Connect to DB
 await connectDB();
 server.listen(PORT,()=>{
