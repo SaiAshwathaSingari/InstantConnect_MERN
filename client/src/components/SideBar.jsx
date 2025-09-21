@@ -1,25 +1,42 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import assets, { userDummyData } from "../assets/assets"
 
 function SideBar({userSelected, setUserSelected}) {
   const navigate = useNavigate()
+  const [menuOpen, setMenuOpen] = useState(false)
 
   return (
     <div className="h-screen w-72 bg-gradient-to-b from-gray-900 to-gray-800 text-gray-100 flex flex-col p-6 shadow-xl relative">
       <img src={assets.logo} alt="logo" className="mb-10 max-w-[140px] mx-auto hover:scale-105 transition-transform duration-300" />
 
-      <div className="absolute top-6 right-6 group">
+      <div className="absolute top-6 right-6">
         <img
           src={assets.menu_icon}
           alt="menu_icon"
           className="h-7 w-7 cursor-pointer hover:rotate-90 transition-transform duration-300"
+          onClick={() => setMenuOpen((prev) => !prev)}
         />
-        <div className="absolute hidden group-hover:block right-0 mt-2 w-44 rounded-md bg-gray-800 border border-gray-700 shadow-lg">
-          <p onClick={() => navigate('/profile')} className="px-4 py-2 text-sm hover:bg-gray-700 cursor-pointer">Edit Profile</p>
-          <hr className="border-gray-700" />
-          <p className="px-4 py-2 text-sm hover:bg-gray-700 cursor-pointer">Log out</p>
-        </div>
+        {menuOpen && (
+          <div className="absolute right-0 mt-2 w-44 rounded-md bg-gray-800 border border-gray-700 shadow-lg z-50">
+            <button 
+              onClick={() => { 
+                navigate('/profile')
+                setMenuOpen(false) 
+              }} 
+              className="w-full text-left px-4 py-2 text-sm hover:bg-gray-700 cursor-pointer"
+            >
+              Edit Profile
+            </button>
+            <hr className="border-gray-700" />
+            <button 
+              onClick={() => setMenuOpen(false)} 
+              className="w-full text-left px-4 py-2 text-sm hover:bg-gray-700 cursor-pointer"
+            >
+              Log out
+            </button>
+          </div>
+        )}
       </div>
 
       <div className="flex items-center bg-gray-800 rounded-lg px-3 py-2 gap-2 mb-6 shadow-inner">
