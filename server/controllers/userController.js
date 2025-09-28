@@ -1,5 +1,6 @@
-import { generateToken } from "../lib/utils";
-import { User } from "../models/User";
+import cloudinary from "../lib/cloudinary.js";
+import { generateToken } from "../lib/utils.js";
+import { User } from "../models/User.js";
 import bcrypt from "bcryptjs";
 
 // Function for Signup
@@ -55,4 +56,29 @@ export const Login = async(req,res)=>{
     res.status(500).json({message:"Internal Server Error"});
  }
 
+}
+
+// Function to check for authenticated user
+export const checkAuth = async(req,res)=>{
+  res.json({success:true,user:req.User});
+}
+
+//Function to update profile picture
+export const updateProfilePic = async(req,res)=>{
+  try {
+    const {profilePic,fullname,bio} = req.body;
+    let updatedUser;
+    const userId = req.User._id;
+    if(!profilePic){
+    updatedUser = await User.findByIdAndUpdate(userId,{bio,fullname},{new:true});
+    res.status(200).json({success:true,user:updatedUser,message:"Profile updated successfully"});      
+    }else{
+      const upload = await cloudinary.uploader.update_metadata(profilePic);
+      updatedUser = await User.findByIdAndUpdate(userId,{profilePic:upload.secure_url,fullname,bio},{new:true});
+      res.status(200).json({success:true,user:updatedUser,message:"Profile updated successfully"});
+    }
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({message:"Internal Server Error"});
+  }
 }
