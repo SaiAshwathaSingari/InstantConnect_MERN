@@ -1,7 +1,8 @@
 import { text } from "stream/consumers";
 import { Message } from "../models/Message.js";
 import { User } from "../models/User.js";
-
+import {io, userSocketMap} from "../server.js";
+import cloudinary from "../lib/cloudinary.js";
 
 export const userSideMessages = async(req,res)=>{
   try {
@@ -58,7 +59,7 @@ export const markMessagesAsRead = async(req,res)=>{
 }
 
 // function to send a message to a user
-const  sendMessage = async(req,res)=>{
+export const  sendMessage = async(req,res)=>{
     
     try {
       const {Message,image} = req.body;
@@ -78,6 +79,10 @@ const  sendMessage = async(req,res)=>{
       
 
     })
+    const receiverSocketId = userSocketMap[receiverId];
+    if(receiverSocketId){
+      io.to(receiverSocketId).emit("newMessage",newMessage);
+    }
     res.status(200).json({success:true, newMessage});
     } catch (error) {
       console.log(error);
