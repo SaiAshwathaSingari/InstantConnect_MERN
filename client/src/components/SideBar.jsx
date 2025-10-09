@@ -1,11 +1,12 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import assets, { userDummyData } from "../assets/assets"
+import { AuthContext } from '../../context/AuthContext'
 
 function SideBar({userSelected, setUserSelected}) {
   const navigate = useNavigate()
   const [menuOpen, setMenuOpen] = useState(false)
-
+  const {logout} = React.useContext(AuthContext)
   return (
     <div className="h-screen w-72 bg-gradient-to-b from-gray-900 to-gray-800 text-gray-100 flex flex-col p-6 shadow-xl relative">
       <img src={assets.logo} alt="logo" className="mb-10 max-w-[140px] mx-auto hover:scale-105 transition-transform duration-300" />
@@ -30,7 +31,11 @@ function SideBar({userSelected, setUserSelected}) {
             </button>
             <hr className="border-gray-700" />
             <button 
-              onClick={() => setMenuOpen(false)} 
+              onClick={() =>{
+                logout()
+                navigate('/login')
+                setMenuOpen(false)
+              }} 
               className="w-full text-left px-4 py-2 text-sm hover:bg-gray-700 cursor-pointer"
             >
               Log out

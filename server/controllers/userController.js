@@ -90,38 +90,46 @@ export const checkAuth = async (req, res) => {
 export const updateProfilePic = async (req, res) => {
   try {
     const { profilePic, fullname, bio } = req.body;
-    let updatedUser;
     const userId = req.User._id;
+    let updatedUser;
 
+    // If no new profile picture, just update name & bio
     if (!profilePic) {
       updatedUser = await User.findByIdAndUpdate(
         userId,
-        { bio, fullname },
-        { new: true }
-      );
-      res.status(200).json({
-        success: true,
-        user: updatedUser,
-        message: "Profile updated successfully",
-      });
-    } else {
-      // ✅ likely should be upload, not update_metadata
-      const upload = await cloudinary.uploader.upload(profilePic);
-
-      updatedUser = await User.findByIdAndUpdate(
-        userId,
-        { profilePic: upload.secure_url, fullname, bio },
+        { fullname, bio },
         { new: true }
       );
 
-      res.status(200).json({
+      return res.status(200).json({
         success: true,
         user: updatedUser,
-        message: "Profile updated successfully",
+        message: "Profile updated successfully (no new photo)",
       });
     }
+
+    // Upload the new profile picture to Cloudinary
+    const uploadResponse = await cloudinary.uploader.upload(profilePic, {
+      folder: "user_profiles",
+      resource_type: "image",
+      transformation: [{ width: 500, height: 500, crop: "limit" }],
+    });
+
+    // Update the user with new Cloudinary URL
+    updatedUser = await User.findByIdAndUpdate(
+      userId,
+      { profilePic: uploadResponse.secure_url, fullname, bio },
+      { new: true }
+    );
+
+    return res.status(200).json({
+      success: true,
+      user: updatedUser,
+      message: "Profile updated successfully with new photo",
+    });
   } catch (error) {
-    console.log(error);
-    res.status(500).json({ message: "Internal Server Error" });
+    console.error("Error updating profile:", error);
+    return res.status(500).json({ message: "Internal Server Error" });
   }
 };
+
