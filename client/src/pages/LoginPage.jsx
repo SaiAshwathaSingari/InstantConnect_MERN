@@ -1,20 +1,27 @@
-import React, { useState } from 'react'
-import assets from '../assets/assets'
+import React, { useState, useContext } from 'react';
+import assets from '../assets/assets';
+import { AuthContext } from '../../context/AuthContext';
 
 function LoginPage() {
   const [isState, setIsState] = useState("Sign Up");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullname, setFullname] = useState("");
-  const [isSubmit, setIsSubmit] = useState(false);
   const [bio, setBio] = useState("");
+  
+  const { login } = useContext(AuthContext);
+
   const onSubmitHandler = (e) => {
     e.preventDefault();
-    setIsSubmit(true);
-    if(isState === "Sign Up"){
-      setIsSubmit(true)
+
+    if (isState === 'Login') {
+      // Only send required fields for login
+      login('login', { email, password });
+    } else {
+      // Signup needs all fields
+      login('signup', { fullname, email, password, bio });
     }
-  }
+  };
 
   return (
     <div className="h-screen flex items-center justify-center bg-gradient-to-b from-gray-900 to-gray-800 text-gray-100">
@@ -26,7 +33,7 @@ function LoginPage() {
         />
 
         <form onSubmit={onSubmitHandler} className="flex flex-col gap-4">
-          {isState === "Sign Up" && !isSubmit && (
+          {isState === "Sign Up" && (
             <input
               type="text"
               placeholder="Full Name"
@@ -37,40 +44,36 @@ function LoginPage() {
             />
           )}
 
-          {!isSubmit && (
-            <>
-              <input
-                type="email"
-                placeholder="Email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 outline-none focus:border-indigo-500 placeholder-gray-400 text-gray-100"
-              />
-              <input
-                type="password"
-                placeholder="Password"
-                value={password}
-                required
-                onChange={(e) => setPassword(e.target.value)}
-                className="px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 outline-none focus:border-indigo-500 placeholder-gray-400 text-gray-100"
-              />
-            </>
-          )}
-           {!isSubmit && isState === "Sign Up" && (
-            <>
-              <input
-                type="text"
-                placeholder="Bio"
-                required
-                value={bio}
-                onChange={(e) => setBio(e.target.value)}
-                className="px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 outline-none focus:border-indigo-500 placeholder-gray-400 text-gray-100"
-              />
-            </>
+          <input
+            type="email"
+            placeholder="Email"
+            required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 outline-none focus:border-indigo-500 placeholder-gray-400 text-gray-100"
+          />
+
+          <input
+            type="password"
+            placeholder="Password"
+            required
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 outline-none focus:border-indigo-500 placeholder-gray-400 text-gray-100"
+          />
+
+          {isState === "Sign Up" && (
+            <input
+              type="text"
+              placeholder="Bio"
+              required
+              value={bio}
+              onChange={(e) => setBio(e.target.value)}
+              className="px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 outline-none focus:border-indigo-500 placeholder-gray-400 text-gray-100"
+            />
           )}
 
-          {!isSubmit && (
+          {isState === "Sign Up" && (
             <div className="flex items-center gap-2 mt-2">
               <input
                 type="checkbox"
@@ -84,17 +87,14 @@ function LoginPage() {
             </div>
           )}
 
-         
-          {!isSubmit && (
-            <button
-              type="submit"
-              className="mt-4 w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg shadow-md transition duration-300"
-            >
-              {isState === "Sign Up" && !isSubmit ? "Create Account" : "Log In"}
-            </button>
-          )}
+          <button
+            type="submit"
+            className="mt-4 w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg shadow-md transition duration-300"
+          >
+            {isState === "Sign Up" ? "Create Account" : "Log In"}
+          </button>
 
-          {isState === "Sign Up" && !isSubmit && (
+          {isState === "Sign Up" ? (
             <p className="mt-4 text-center text-sm text-gray-400">
               Already have an account?{" "}
               <span
@@ -104,9 +104,7 @@ function LoginPage() {
                 Log In
               </span>
             </p>
-          )}
-
-          {isState === "Login" && !isSubmit && (
+          ) : (
             <p className="mt-4 text-center text-sm text-gray-400">
               Don’t have an account?{" "}
               <span
@@ -117,11 +115,10 @@ function LoginPage() {
               </span>
             </p>
           )}
-          
         </form>
       </div>
     </div>
-  )
+  );
 }
 
-export default LoginPage
+export default LoginPage;
