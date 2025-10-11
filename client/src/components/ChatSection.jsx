@@ -283,9 +283,9 @@ const ChatSection = ({ onProfileClick }) => {
       {/* Chat Area */}
       <div className="flex-1 overflow-y-auto p-6 space-y-4">
         {Array.isArray(messages) && messages.map((msg, index) => {
-          // Safely get message content
+          // Allow messages with either text or image
           const messageContent = msg?.text || msg?.content;
-          if (!messageContent) {
+          if (!messageContent && !msg?.image) {
             console.log('Invalid message:', msg);
             return null;
           }
