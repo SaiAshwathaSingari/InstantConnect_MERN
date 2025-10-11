@@ -16,12 +16,10 @@ function SideBar() {
     .filter(user => user && user.fullname)
     .filter(user => user.fullname.toLowerCase().includes(input.toLowerCase()))
     .sort((a, b) => {
-      // Sort online users first
       const aOnline = onlineUsers.includes(a._id);
       const bOnline = onlineUsers.includes(b._id);
       if (aOnline && !bOnline) return -1;
       if (!aOnline && bOnline) return 1;
-      // Then sort by name
       return a.fullname.localeCompare(b.fullname);
     });
 
@@ -31,37 +29,39 @@ function SideBar() {
 
   return (
     <div className="h-screen w-72 bg-stone-900/80 backdrop-blur-xl text-stone-100 flex flex-col p-6 shadow-[0_28px_80px_-30px_rgba(0,0,0,0.65)] relative">
-      {/* Brand Title */}
-      <div className="mb-10 mx-auto text-center">
-        <span className="text-3xl font-bold text-orange-500 drop-shadow-[0_8px_22px_rgba(251,146,60,0.35)] tracking-wide select-none">Insta</span>
-        <span className="text-3xl font-semibold text-orange-300 tracking-wide select-none">Connect</span>
-      </div>
 
-      {/* Menu */}
-      <div className="absolute top-6 right-6">
-        <img
-          src={assets.menu_icon}
-          alt="menu_icon"
-          className="h-7 w-7 cursor-pointer hover:rotate-90 transition-transform duration-300"
-          onClick={() => setMenuOpen(prev => !prev)}
-        />
-        {menuOpen && (
-          <div className="absolute right-0 mt-2 w-44 rounded-2xl bg-stone-800/80 border border-stone-700 shadow-[0_12px_34px_-12px_rgba(251,146,60,0.6)] z-50">
-            <button
-              onClick={() => { navigate('/profile'); setMenuOpen(false); }}
-              className="w-full text-left px-4 py-2 text-sm hover:bg-stone-700/70 cursor-pointer rounded-t-2xl transition-colors"
-            >
-              Edit Profile
-            </button>
-            <hr className="border-stone-700" />
-            <button
-              onClick={() => { logout(); navigate('/login'); setMenuOpen(false); }}
-              className="w-full text-left px-4 py-2 text-sm hover:bg-stone-700/70 cursor-pointer rounded-b-2xl transition-colors"
-            >
-              Log out
-            </button>
-          </div>
-        )}
+      {/* Brand Title & Menu */}
+      <div className="mb-10 flex items-center justify-between">
+        <div className="flex-1 text-center">
+          <span className="text-3xl font-bold text-orange-500 drop-shadow-[0_8px_22px_rgba(251,146,60,0.35)] tracking-wide select-none">Insta</span>
+          <span className="text-3xl font-semibold text-orange-300 tracking-wide select-none">Connect</span>
+        </div>
+
+        <div className="ml-4 relative">
+          <img
+            src={assets.menu_icon}
+            alt="menu_icon"
+            className="h-7 w-7 cursor-pointer hover:rotate-90 transition-transform duration-300"
+            onClick={() => setMenuOpen(prev => !prev)}
+          />
+          {menuOpen && (
+            <div className="absolute right-0 mt-2 w-44 rounded-2xl bg-stone-800/80 border border-stone-700 shadow-[0_12px_34px_-12px_rgba(251,146,60,0.6)] z-50">
+              <button
+                onClick={() => { navigate('/profile'); setMenuOpen(false); }}
+                className="w-full text-left px-4 py-2 text-sm hover:bg-stone-700/70 cursor-pointer rounded-t-2xl transition-colors"
+              >
+                Edit Profile
+              </button>
+              <hr className="border-stone-700" />
+              <button
+                onClick={() => { logout(); navigate('/login'); setMenuOpen(false); }}
+                className="w-full text-left px-4 py-2 text-sm hover:bg-stone-700/70 cursor-pointer rounded-b-2xl transition-colors"
+              >
+                Log out
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Search */}
@@ -99,7 +99,6 @@ function SideBar() {
               <p className="text-xs text-stone-400 truncate">{user.bio || 'No bio set'}</p>
             </div>
             
-            {/* Unseen messages count */}
             {unseenMessages[user._id] > 0 && (
               <span className="min-w-[20px] h-5 flex items-center justify-center bg-orange-500 text-white text-xs font-bold rounded-full px-1.5">
                 {unseenMessages[user._id]}
@@ -109,7 +108,6 @@ function SideBar() {
         ))}
       </div>
 
-      {/* Unseen Messages Badge */}
       {selectedUser && unseenMessages[selectedUser._id] > 0 && (
         <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 bg-red-600 text-white text-xs font-semibold px-3 py-1 rounded-full shadow-[0_4px_12px_-2px_rgba(251,146,60,0.5)]">
           {unseenMessages[selectedUser._id]} New Messages
