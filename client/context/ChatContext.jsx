@@ -1,5 +1,5 @@
-import { createContext, useContext, useState } from "react";
-import {AuthContext} from "./AuthContext.jsx";
+import { createContext, useContext, useState, useEffect } from "react";
+import { AuthContext } from "./AuthContext.jsx";
 import toast from "react-hot-toast";
 
 export const ChatContext = createContext();
@@ -8,7 +8,7 @@ export const ChatProvider = ({ children }) => {
   const [messages, setMessages] = useState([]);
   const [users, setUsers] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
-  const [unSeenMessages, setUnseenMessages] = useState({});
+  const [unseenMessages, setUnseenMessages] = useState({}); // Corrected
   const { socket, axios } = useContext(AuthContext);
 
   // Get list of users
@@ -27,14 +27,50 @@ export const ChatProvider = ({ children }) => {
   // Get messages for selected user
   const getMessages = async (userId) => {
     try {
+      if (!userId) {
+        console.error('No user ID provided');
+        return;
+      }
       const { data } = await axios.get(`/api/message/${userId}`);
       if (data.success) {
-        setMessages(data.messages);
+        setMessages(data.messages || []);
+      } else {
+        console.error('Failed to fetch messages:', data);
+        toast.error(data.msg || 'Failed to load messages');
       }
     } catch (error) {
-      toast.error(error.message);
+      console.error('Error fetching messages:', error);
+      toast.error(error.response?.data?.msg || error.message || 'Failed to load messages');
+      setMessages([]);
     }
   };
+
+  // Subscribe to new messages via socket
+  const subscribeToMessages = () => {
+    if (!socket) return;
+
+    socket.on("newMessage", (newMessage) => {
+      if (selectedUser && newMessage.senderId === selectedUser._id) {
+        setMessages((prev) => [...prev, newMessage]);
+        axios.put(`/api/message/mark/${selectedUser._id}`);
+      } else {
+        setUnseenMessages((prev) => ({
+          ...prev,
+          [newMessage.senderId]: (prev[newMessage.senderId] || 0) + 1,
+        }));
+      }
+    });
+  };
+
+  // Unsubscribe from socket
+  const unsubscribeFromMessages = () => {
+    if (socket) socket.off("newMessage");
+  };
+
+  useEffect(() => {
+    subscribeToMessages();
+    return () => unsubscribeFromMessages();
+  }, [selectedUser, socket]);
 
   // Send message to selected user
   const sendMessage = async (message) => {
@@ -49,9 +85,9 @@ export const ChatProvider = ({ children }) => {
         message
       );
       if (data.success) {
-        setMessages((prevMessages) => [...prevMessages, data.message]);
+        setMessages((prev) => [...prev, data.newMessage]);
       } else {
-        toast.error(data.message);
+        toast.error(data.msg);
       }
     } catch (error) {
       toast.error(error.message);
@@ -65,7 +101,7 @@ export const ChatProvider = ({ children }) => {
     setUsers,
     selectedUser,
     setSelectedUser,
-    unSeenMessages,
+    unseenMessages,      // Corrected
     setUnseenMessages,
     getUsers,
     getMessages,
