@@ -44,6 +44,13 @@ export const getAllMessages = async (req, res) => {
     const { id: selectedUserId } = req.params;
     const userId = req.user._id;
 
+    // First, mark all messages from selected user as seen
+    await Message.updateMany(
+      { senderId: selectedUserId, receiverId: userId, seen: false },
+      { seen: true }
+    );
+
+    // Then fetch all messages
     const messages = await Message.find({
       $or: [
         { senderId: userId, receiverId: selectedUserId },
@@ -79,8 +86,8 @@ export const markMessagesAsRead = async (req, res) => {
 // Send a message to a user
 export const sendMessage = async (req, res) => {
   try {
-    const { content, image } = req.body; // Get message content
-    if (!content && !image) {
+    const { content, text, image } = req.body; // Get message content
+    if (!content && !text && !image) {
       return res.status(400).json({ success: false, msg: "Message content is required" });
     }
     
@@ -89,14 +96,35 @@ export const sendMessage = async (req, res) => {
 
     let imageUrl;
     if (image) {
-      const uploadResponse = await cloudinary.uploader.upload(image);
-      imageUrl = uploadResponse.secure_url;
+      try {
+        // Configure upload options
+        const uploadOptions = {
+          resource_type: 'auto',
+          folder: 'chat_images',
+          allowed_formats: ['jpg', 'png', 'gif', 'webp', 'jpeg'],
+          max_bytes: 2000000, // 2MB limit
+          transformation: [
+            { width: 800, height: 800, crop: 'limit', quality: 'auto' }
+          ]
+        };
+
+        const uploadResponse = await cloudinary.uploader.upload(image, uploadOptions);
+        imageUrl = uploadResponse.secure_url;
+      } catch (uploadError) {
+        console.error('Image upload error:', uploadError);
+        return res.status(400).json({ 
+          success: false, 
+          msg: "Failed to upload image. Please try again with a smaller image or different format." 
+        });
+      }
     }
+
+    const messageContent = text || content; // Use either field
 
     const newMessage = await Message.create({
       senderId: myId,
       receiverId,
-      text,
+      text: messageContent,
       image: imageUrl,
       seen: false,
     });

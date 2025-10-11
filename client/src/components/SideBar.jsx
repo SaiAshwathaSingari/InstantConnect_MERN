@@ -31,13 +31,11 @@ function SideBar() {
 
   return (
     <div className="h-screen w-72 bg-stone-900/80 backdrop-blur-xl text-stone-100 flex flex-col p-6 shadow-[0_28px_80px_-30px_rgba(0,0,0,0.65)] relative">
-      
-      {/* Logo */}
-      <img
-        src={assets.logo}
-        alt="logo"
-        className="mb-10 max-w-[140px] mx-auto drop-shadow-[0_8px_22px_rgba(251,146,60,0.35)] hover:scale-105 transition-transform duration-300"
-      />
+      {/* Brand Title */}
+      <div className="mb-10 mx-auto text-center">
+        <span className="text-3xl font-bold text-orange-500 drop-shadow-[0_8px_22px_rgba(251,146,60,0.35)] tracking-wide select-none">Insta</span>
+        <span className="text-3xl font-semibold text-orange-300 tracking-wide select-none">Connect</span>
+      </div>
 
       {/* Menu */}
       <div className="absolute top-6 right-6">

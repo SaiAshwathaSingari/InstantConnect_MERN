@@ -6,6 +6,8 @@ import { ChatContext } from '../../context/ChatContext';
 
 function HomePage() {
   const { selectedUser } = React.useContext(ChatContext);
+  const [isProfileOpen, setIsProfileOpen] = React.useState(false);
+  
   // Cursor spotlight
   const onMouseMove = (e) => {
     const root = e.currentTarget;
@@ -43,11 +45,23 @@ function HomePage() {
 
       {/* Sidebar and main content */}
       <SideBar />
-      <div className="flex-1 flex">
+      <div className="flex-1 flex overflow-hidden">
         {selectedUser && (
           <>
-            <ChatSection />
-            <RightSidebar />
+            <div className={`flex-1 transition-all duration-300 ${isProfileOpen ? 'mr-[384px]' : 'mr-0'}`}>
+              <ChatSection onProfileClick={() => setIsProfileOpen(!isProfileOpen)} />
+            </div>
+            <div 
+              className={`fixed right-0 top-0 bottom-0 transition-transform duration-300 ease-in-out ${
+                isProfileOpen ? 'translate-x-0' : 'translate-x-full'
+              }`}
+            >
+              <RightSidebar 
+                userSelected={selectedUser} 
+                isOpen={isProfileOpen}
+                onClose={() => setIsProfileOpen(false)}
+              />
+            </div>
           </>
         )}
       </div>

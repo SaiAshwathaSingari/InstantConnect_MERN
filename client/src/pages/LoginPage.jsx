@@ -60,13 +60,10 @@ function LoginPage() {
         shadow-[0_28px_80px_-30px_rgba(0,0,0,0.65)] p-10 lg:p-14
         transition-shadow duration-300 ease-out motion-safe:hover:shadow-[0_36px_100px_-34px_rgba(0,0,0,0.70)]"
       >
-        <img
-          src={assets.logo_big}
-          alt="logo"
-          className="mb-10 mx-auto h-14 lg:h-16 w-auto
-          drop-shadow-[0_8px_22px_rgba(251,146,60,0.35)]
-          transition-transform duration-300 ease-out motion-safe:hover:scale-[1.04]"
-        />
+  <div className="mb-10 mx-auto text-center">
+          <span className="text-4xl font-bold text-orange-500 drop-shadow-[0_8px_22px_rgba(251,146,60,0.35)] tracking-wide select-none">Insta</span>
+          <span className="text-4xl font-semibold text-orange-300 tracking-wide select-none">Connect</span>
+        </div>
 
         <form onSubmit={onSubmitHandler} className="flex flex-col gap-6">
           {isState === "Sign Up" && (

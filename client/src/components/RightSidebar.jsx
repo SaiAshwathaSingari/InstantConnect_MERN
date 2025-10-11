@@ -1,14 +1,64 @@
-import React from 'react';
-import assets, { imagesDummyData } from '../assets/assets';
+import React, { useState, useRef, useEffect } from 'react';
+import assets from '../assets/assets';
 
-function RightSidebar({ userSelected }) {
+function RightSidebar({ userSelected, isOpen, onClose }) {
+  const [width, setWidth] = useState(384); // 24rem default
+  const [isResizing, setIsResizing] = useState(false);
+  const sidebarRef = useRef(null);
+  const startResizeX = useRef(0);
+  const startWidth = useRef(0);
+
+  useEffect(() => {
+    const handleMouseMove = (e) => {
+      if (!isResizing) return;
+      const diff = startResizeX.current - e.clientX;
+      const newWidth = Math.min(Math.max(startWidth.current + diff, 320), 600); // min 320px, max 600px
+      setWidth(newWidth);
+    };
+
+    const handleMouseUp = () => {
+      setIsResizing(false);
+      document.body.style.cursor = 'default';
+    };
+
+    if (isResizing) {
+      window.addEventListener('mousemove', handleMouseMove);
+      window.addEventListener('mouseup', handleMouseUp);
+    }
+
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isResizing]);
+
+  const startResize = (e) => {
+    setIsResizing(true);
+    startResizeX.current = e.clientX;
+    startWidth.current = width;
+    document.body.style.cursor = 'ew-resize';
+  };
+
   if (!userSelected) return null;
 
   return (
-    <div className="flex flex-col items-center bg-stone-900/75 backdrop-blur-xl text-stone-100 p-8 rounded-3xl w-[32rem] overflow-hidden
-      shadow-[0_28px_80px_-30px_rgba(0,0,0,0.65)] transition-shadow duration-300 ease-out
-      motion-safe:hover:shadow-[0_36px_100px_-34px_rgba(0,0,0,0.70)]"
+    <div 
+      ref={sidebarRef}
+      style={{ width: `${width}px` }}
+      className="flex flex-col items-center bg-stone-900/75 backdrop-blur-xl text-stone-100 p-8 rounded-3xl overflow-hidden
+        shadow-[0_28px_80px_-30px_rgba(0,0,0,0.65)] transition-colors duration-300 ease-out
+        motion-safe:hover:shadow-[0_36px_100px_-34px_rgba(0,0,0,0.70)] relative"
     >
+      {/* Close Button */}
+      <button 
+        onClick={onClose}
+        className="absolute top-4 right-4 p-2 rounded-full hover:bg-stone-800/50 transition-colors"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+
       {/* Profile Pic */}
       <img
         src={userSelected.profilePic || assets.avatar_icon}
@@ -27,24 +77,36 @@ function RightSidebar({ userSelected }) {
 
       <hr className="w-full border-stone-700 mb-4" />
 
-      {/* Media Section */}
-      <div className="w-full">
-        <p className="text-stone-100 font-semibold mb-2">Media</p>
-        <div className="grid grid-cols-3 gap-2">
-          {imagesDummyData.map((url, index) => (
-            <div
-              key={index}
-              className="w-full h-24 overflow-hidden rounded-2xl cursor-pointer shadow-[0_4px_12px_-2px_rgba(251,146,60,0.3)] hover:shadow-[0_8px_24px_-4px_rgba(251,146,60,0.35)] transition-all"
-              onClick={() => window.open(url)}
-            >
-              <img
-                src={url}
-                alt=""
-                className="w-full h-full object-cover hover:scale-105 transition-transform"
-              />
-            </div>
-          ))}
+      {/* User Info Section */}
+      <div className="w-full space-y-4">
+        <div>
+          <h3 className="text-stone-400 text-sm mb-1">Email</h3>
+          <p className="text-stone-100">{userSelected.email}</p>
         </div>
+        <div>
+          <h3 className="text-stone-400 text-sm mb-1">Bio</h3>
+          <p className="text-stone-100">{userSelected.bio || 'No bio added yet'}</p>
+        </div>
+        <div>
+          <h3 className="text-stone-400 text-sm mb-1">Joined</h3>
+          <p className="text-stone-100">
+            {new Date(userSelected.createdAt).toLocaleDateString('en-US', {
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric'
+            })}
+          </p>
+        </div>
+      </div>
+
+      {/* Resize Handle */}
+      <div
+        className="absolute left-0 top-0 bottom-0 w-1 cursor-ew-resize hover:bg-orange-500/20 group"
+        onMouseDown={startResize}
+      >
+        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-16 bg-stone-700/50 
+          group-hover:bg-orange-500/50 group-hover:w-1 transition-all duration-200" 
+        />
       </div>
     </div>
   );
