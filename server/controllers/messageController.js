@@ -102,9 +102,9 @@ export const sendMessage = async (req, res) => {
           resource_type: 'auto',
           folder: 'chat_images',
           allowed_formats: ['jpg', 'png', 'gif', 'webp', 'jpeg'],
-          max_bytes: 2000000, // 2MB limit
+          max_bytes: 5000000, // 5MB limit
           transformation: [
-            { width: 800, height: 800, crop: 'limit', quality: 'auto' }
+            { width: 2000, height: 2000, crop: 'limit', quality: 'auto:best' }
           ]
         };
 
