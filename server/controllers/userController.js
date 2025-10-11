@@ -12,7 +12,7 @@ export const Signup = async (req, res) => {
       return res.status(400).json({ msg: "Please enter all the fields" });
     }
 
-    // ❌ was: new User.findOne(...)
+    // was: new User.findOne(...)
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.json({ msg: "User already exists" });
@@ -83,14 +83,14 @@ export const Login = async (req, res) => {
 
 // Function to check for authenticated user
 export const checkAuth = async (req, res) => {
-  res.json({ success: true, user: req.User });
+  res.json({ success: true, user: req.user });
 };
 
 // Function to update profile picture
 export const updateProfilePic = async (req, res) => {
   try {
     const { profilePic, fullname, bio } = req.body;
-    const userId = req.User._id;
+    const userId = req.user._id;
     let updatedUser;
 
     // If no new profile picture, just update name & bio

@@ -7,3 +7,23 @@
 ::-webkit-scrollbar {
   display: none;
 }
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+/* Enhanced pulse animation */
+@keyframes enhancedPulse {
+  0% { opacity: 0.6; transform: scale(0.98); }
+  50% { opacity: 0.8; transform: scale(1); }
+  100% { opacity: 0.6; transform: scale(0.98); }
+}
+
+.animate-pulse {
+  animation: enhancedPulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}

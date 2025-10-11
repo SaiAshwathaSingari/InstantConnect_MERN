@@ -1,12 +1,12 @@
-import React, { use } from 'react'
-import { BrowserRouter, Navigate } from 'react-router-dom'
-import { Router } from 'react-router-dom'
+import React from 'react'
+import { Navigate } from 'react-router-dom'
 import HomePage from './pages/HomePage'
 import { Routes, Route } from 'react-router-dom'
 import LoginPage from './pages/LoginPage'
 import ProfilePage from './pages/ProfilePage'
-import {Toaster} from 'react-hot-toast'
-import {AuthContext} from '../context/AuthContext'
+import { Toaster } from 'react-hot-toast'
+import { AuthContext } from '../context/AuthContext'
+import { ChatProvider } from '../context/ChatContext'
 import { useContext } from 'react'
 function App() {
   const {authUser} = useContext(AuthContext);
@@ -14,10 +14,31 @@ function App() {
     <>
     <Toaster/>
     <Routes>
-      <Route path='/' element={authUser ? <HomePage/>:<Navigate to={"/login"}/>}/>
-      <Route path='/login' element={!authUser ?<LoginPage/> : <Navigate to={"/"}/>}/>
-      <Route path='/profile' element={authUser ? <ProfilePage/> : <Navigate to={"/login"}/>}/>
-      
+      <Route path='/login' element={!authUser ? <LoginPage/> : <Navigate to={"/"}/>}/>
+      <Route 
+        path='/' 
+        element={
+          authUser ? (
+            <ChatProvider>
+              <HomePage/>
+            </ChatProvider>
+          ) : (
+            <Navigate to={"/login"}/>
+          )
+        }
+      />
+      <Route 
+        path='/profile' 
+        element={
+          authUser ? (
+            <ChatProvider>
+              <ProfilePage/>
+            </ChatProvider>
+          ) : (
+            <Navigate to={"/login"}/>
+          )
+        }
+      />
     </Routes>
     </>
   ) 

@@ -5,8 +5,35 @@ import { io } from "socket.io-client";
 
 const backendURL = import.meta.env.VITE_BACKEND_URL;
 
+// Configure axios defaults
 axios.defaults.baseURL = backendURL;
 axios.defaults.withCredentials = true;
+
+// Configure axios interceptors
+axios.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      config.headers['Authorization'] = `Bearer ${token}`;
+      config.headers['token'] = token;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
+axios.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      localStorage.removeItem('token');
+      window.location.href = '/login';
+    }
+    return Promise.reject(error);
+  }
+);
 
 export const AuthContext = createContext();
 
@@ -40,9 +67,29 @@ export const AuthProvider = ({ children }) => {
 
     setSocket(newSocket);
 
-    newSocket.on("connect", () => console.log("✅ Socket connected:", newSocket.id));
-    newSocket.on("getOnlineUsers", (usersIds) => setOnlineUsers(usersIds));
-    newSocket.on("disconnect", () => console.log("❌ Socket disconnected"));
+    newSocket.on("connect", () => {
+      console.log("✅ Socket connected:", newSocket.id);
+      // Request online users immediately after connecting
+      newSocket.emit("getOnlineUsers");
+    });
+
+    newSocket.on("getOnlineUsers", (usersIds) => {
+      console.log("Online users updated:", usersIds);
+      setOnlineUsers(usersIds || []);
+    });
+
+    newSocket.on("userConnected", (userId) => {
+      setOnlineUsers(prev => [...new Set([...prev, userId])]);
+    });
+
+    newSocket.on("userDisconnected", (userId) => {
+      setOnlineUsers(prev => prev.filter(id => id !== userId));
+    });
+
+    newSocket.on("disconnect", () => {
+      console.log("❌ Socket disconnected");
+      setOnlineUsers([]);
+    });
   };
 
   const login = async (state, credentials) => {
