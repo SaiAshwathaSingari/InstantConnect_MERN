@@ -1,15 +1,12 @@
 import express from 'express';
 import cors from 'cors';
-import { connectDB } from '../lib/db_connect.js';
-import userRouter from '../routes/userRoutes.js';
-import messageRoutes from '../routes/messageRoutes.js';
 import dotenv from 'dotenv';
 
 dotenv.config();
 
 const app = express();
 
-// CORS configuration with all necessary headers
+// Basic CORS configuration
 const corsOptions = {
   origin: process.env.FRONTEND_URL || "http://localhost:5173",
   credentials: true,
@@ -21,11 +18,14 @@ const corsOptions = {
     'x-auth-token',
     'Origin',
     'Accept'
-  ],
-  exposedHeaders: ['token', 'Authorization']
+  ]
 };
 
 app.use(cors(corsOptions));
+
+// Basic middleware
+app.use(express.json({ limit: '2mb' }));
+app.use(express.urlencoded({ limit: '2mb', extended: true }));
 
 // Handle preflight requests
 app.use((req, res, next) => {
@@ -37,27 +37,33 @@ app.use((req, res, next) => {
   next();
 });
 
-// Increase payload size limit for image uploads
-app.use(express.json({ limit: '2mb' }));
-app.use(express.urlencoded({ limit: '2mb', extended: true }));
-
-// Health check route
-app.get('/api/status', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
-});
-
 // Root route for Vercel
 app.get('/', (req, res) => {
   res.json({ 
     message: 'InstantConnect API is running',
     timestamp: new Date().toISOString(),
-    environment: process.env.NODE_ENV || 'development'
+    environment: process.env.NODE_ENV || 'development',
+    status: 'healthy'
   });
 });
 
-// Main routes
-app.use('/api/user', userRouter);
-app.use('/api/message', messageRoutes);
+// Health check route
+app.get('/api/status', (req, res) => {
+  res.json({ 
+    status: 'ok', 
+    timestamp: new Date().toISOString(),
+    version: '1.0.0'
+  });
+});
+
+// Test route to verify basic functionality
+app.get('/api/test', (req, res) => {
+  res.json({
+    success: true,
+    message: 'API is working correctly',
+    timestamp: new Date().toISOString()
+  });
+});
 
 // 404 handler
 app.use('*', (req, res) => {
@@ -77,34 +83,6 @@ app.use((err, req, res, next) => {
     error: process.env.NODE_ENV === 'development' ? err.stack : undefined
   });
 });
-
-// Initialize database connection - but don't block the serverless function
-let dbConnected = false;
-let dbInitializing = false;
-
-const initializeDB = async () => {
-  if (dbConnected || dbInitializing) return;
-  
-  dbInitializing = true;
-  
-  try {
-    if (process.env.MONGODB_URI) {
-      await connectDB();
-      dbConnected = true;
-      console.log('MongoDB connected successfully');
-    } else {
-      console.warn('MONGODB_URI not found in environment variables');
-    }
-  } catch (error) {
-    console.error('Failed to connect to MongoDB:', error);
-    // Don't throw error in serverless environment
-  } finally {
-    dbInitializing = false;
-  }
-};
-
-// Initialize DB connection on cold start
-initializeDB();
 
 // Export for Vercel
 export default app;
