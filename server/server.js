@@ -15,7 +15,7 @@ const server = http.createServer(app);
 
 // CORS configuration with all necessary headers
 const corsOptions = {
-  origin: "http://localhost:5173", // frontend URL
+  origin: process.env.FRONTEND_URL || "http://localhost:5173", // frontend URL
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
   allowedHeaders: [
@@ -48,7 +48,7 @@ app.use(express.urlencoded({ limit: '2mb', extended: true }));
 // Socket.io setup
 export const io = new Server(server, {
   cors: {
-    origin: "http://localhost:5173",  // frontend URL
+    origin: process.env.FRONTEND_URL || "http://localhost:5173",  // frontend URL
     credentials: true
   }
 });
