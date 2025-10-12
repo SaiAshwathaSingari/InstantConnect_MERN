@@ -1,6 +1,7 @@
 import { Message } from "../models/Message.js";
 import { User } from "../models/User.js";
-import { io, userSocketMap } from "../server.js";
+// Socket.io imports removed for serverless function
+// const { io, userSocketMap } = require("../server.js");
 import cloudinary from "../lib/cloudinary.js";
 
 // Get all users except the logged-in user and unseen messages count
@@ -129,11 +130,11 @@ export const sendMessage = async (req, res) => {
       seen: false,
     });
 
-    // Emit message to receiver if online
-    const receiverSocketId = userSocketMap[receiverId];
-    if (receiverSocketId) {
-      io.to(receiverSocketId).emit("newMessage", newMessage);
-    }
+    // Socket.io functionality disabled for serverless function
+    // const receiverSocketId = userSocketMap[receiverId];
+    // if (receiverSocketId) {
+    //   io.to(receiverSocketId).emit("newMessage", newMessage);
+    // }
 
     res.status(200).json({ success: true, newMessage });
   } catch (error) {
