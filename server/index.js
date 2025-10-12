@@ -1,14 +1,11 @@
-// Absolute minimal serverless function
-// This should work on Vercel without any issues
-
+// Alternative serverless function in root directory
 export default function handler(req, res) {
   try {
-    // Basic response
     res.status(200).json({
-      message: 'Hello from Vercel!',
+      message: 'InstantConnect API is running',
       timestamp: new Date().toISOString(),
-      method: req.method,
-      url: req.url
+      status: 'healthy',
+      method: req.method
     });
   } catch (error) {
     console.error('Error:', error);
