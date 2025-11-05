@@ -41,7 +41,7 @@ app.use((req, res, next) => {
   next();
 });
 
-// Increase payload size limit for image uploads
+
 app.use(express.json({ limit: '2mb' }));
 app.use(express.urlencoded({ limit: '2mb', extended: true }));
 
@@ -85,7 +85,7 @@ io.on("connection", (socket) => {
 // Middleware setup
 app.use(express.json());
 
-// Health check route
+
 app.get('/api/status', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
@@ -125,7 +125,7 @@ const startServer = async () => {
 
     // Start the HTTP server
     server.listen(PORT, () => {
-      console.log(`🚀 Server is running on http://localhost:${PORT}`);
+      console.log(`Server is running on http://localhost:${PORT}`);
     });
   } catch (error) {
     console.error('Failed to start server:', error);
