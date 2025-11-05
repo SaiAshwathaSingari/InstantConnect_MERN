@@ -22,6 +22,13 @@ function LoginPage() {
 
   const onSubmitHandler = (e) => {
     e.preventDefault();
+
+    // Allow registration only if it's a Gmail address
+    if (isState === "Sign Up" && !email.endsWith("@gmail.com")) {
+      alert("Only Gmail addresses are allowed for registration.");
+      return;
+    }
+
     if (isState === "Login") {
       login("login", { email, password });
     } else {
@@ -163,6 +170,5 @@ function LoginPage() {
     </div>
   );
 }
-
 
 export default LoginPage;
