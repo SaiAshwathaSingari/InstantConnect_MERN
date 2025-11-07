@@ -11,17 +11,18 @@ dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+const FRONTEND_URL = process.env.VITE_FRONTEND_URL || 'http://localhost:5173';
 const server = http.createServer(app);
 
-// CORS configuration with all necessary headers
+// CORS configuration (for both local + production)
 const corsOptions = {
-  origin: "http://localhost:5173", // frontend URL
+  origin: FRONTEND_URL,
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
   allowedHeaders: [
-    'Content-Type', 
-    'Authorization', 
-    'token', 
+    'Content-Type',
+    'Authorization',
+    'token',
     'x-auth-token',
     'Origin',
     'Accept'
@@ -34,6 +35,7 @@ app.use(cors(corsOptions));
 // Handle preflight requests
 app.use((req, res, next) => {
   if (req.method === 'OPTIONS') {
+    res.header('Access-Control-Allow-Origin', FRONTEND_URL);
     res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
     res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, token, x-auth-token, Origin, Accept');
     return res.status(200).json({});
@@ -41,60 +43,54 @@ app.use((req, res, next) => {
   next();
 });
 
-// Increase payload size limit for image uploads
-app.use(express.json({ limit: '2mb' }));
-app.use(express.urlencoded({ limit: '2mb', extended: true }));
+// Increase payload limit (for images)
+app.use(express.json({ limit: '5mb' }));
+app.use(express.urlencoded({ limit: '5mb', extended: true }));
 
 // Socket.io setup
 export const io = new Server(server, {
   cors: {
-    origin: "http://localhost:5173",  // frontend URL
+    origin: FRONTEND_URL,
     credentials: true
   }
 });
 
-// store users online
+// Store users online
 export const userSocketMap = {};
 
-io.on("connection", (socket) => {
+io.on('connection', (socket) => {
   const userId = socket.handshake.query.userId;
-  console.log("User connected", userId);
+  console.log('User connected:', userId);
 
   if (userId) {
     userSocketMap[userId] = socket.id;
-    // Emit to all clients that a new user is online
-    io.emit("userConnected", userId);
+    io.emit('userConnected', userId);
   }
 
-  // Handle request for online users
-  socket.on("getOnlineUsers", () => {
-    io.emit("getOnlineUsers", Object.keys(userSocketMap));
+  socket.on('getOnlineUsers', () => {
+    io.emit('getOnlineUsers', Object.keys(userSocketMap));
   });
 
-  socket.on("disconnect", () => {
-    console.log("User disconnected", userId);
+  socket.on('disconnect', () => {
+    console.log('User disconnected:', userId);
     if (userId) {
       delete userSocketMap[userId];
-      // Emit to all clients that a user went offline
-      io.emit("userDisconnected", userId);
+      io.emit('userDisconnected', userId);
     }
-    io.emit("getOnlineUsers", Object.keys(userSocketMap));
+    io.emit('getOnlineUsers', Object.keys(userSocketMap));
   });
 });
-
-// Middleware setup
-app.use(express.json());
 
 // Health check route
 app.get('/api/status', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// Main routes
+// API routes
 app.use('/api/user', userRouter);
 app.use('/api/message', messageRoutes);
 
-// Error handling middleware
+// Error handler
 app.use((err, req, res, next) => {
   console.error('Global error:', err);
   res.status(err.status || 500).json({
@@ -104,37 +100,30 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Handle uncaught exceptions
+// Handle uncaught errors
 process.on('uncaughtException', (error) => {
   console.error('Uncaught Exception:', error);
   process.exit(1);
 });
 
-// Handle unhandled rejections
 process.on('unhandledRejection', (error) => {
   console.error('Unhandled Rejection:', error);
   process.exit(1);
 });
 
-// Initialize server
+// Start server
 const startServer = async () => {
   try {
-    // Connect to MongoDB
     await connectDB();
-    console.log('MongoDB connected successfully');
-
-    // Start the HTTP server
+    console.log('✅ MongoDB connected successfully');
     server.listen(PORT, () => {
-      console.log(`🚀 Server is running on http://localhost:${PORT}`);
+      console.log(`🚀 Server running on port ${PORT}`);
+      console.log(`🌐 CORS allowed for: ${FRONTEND_URL}`);
     });
   } catch (error) {
-    console.error('Failed to start server:', error);
+    console.error('❌ Failed to start server:', error);
     process.exit(1);
   }
 };
 
-// Start the server
-startServer().catch(error => {
-  console.error('Server initialization failed:', error);
-  process.exit(1);
-});
+startServer();

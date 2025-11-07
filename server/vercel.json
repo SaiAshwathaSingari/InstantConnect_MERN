@@ -1,0 +1,21 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "server.js",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    { "src": "/(.*)", "dest": "server.js" }
+  ],
+  "env": {
+    "PORT": "5000",
+    "MONGODB_URI": "mongodb+srv://ssa123:ssa123@cluster0.pw9vgqm.mongodb.net/instantconnect?retryWrites=true&w=majority&appName=Cluster0",
+    "JWT_SECRET": "ssa_top_secret",
+    "VITE_FRONTEND_URL": "https://instaconnect-frontend.vercel.app",
+    "CLOUDINARY_CLOUD_NAME": "dcwdq9myd",
+    "CLOUDINARY_API_KEY": "241389413554323",
+    "CLOUDINARY_API_SECRET": "CEp0O1jmt3O0HekGPZGioiRPfDc"
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "vite.config.*",
+      "use": "@vercel/static-build",
+      "config": { "distDir": "dist" }
+    }
+  ],
+  "scripts": {
+    "build": "vite build"
+  },
+  "routes": [
+    { "handle": "filesystem" },
+    { "src": "/.*", "dest": "/index.html" }
+  ],
+  "env": {
+    "VITE_BACKEND_URL": "https://instaconnect-backend.vercel.app"
+  }
+}
