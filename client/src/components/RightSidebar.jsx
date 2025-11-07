@@ -1,18 +1,20 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useContext } from 'react';
 import assets from '../assets/assets';
+import { AuthContext } from '../../context/AuthContext';
 
 function RightSidebar({ userSelected, isOpen, onClose }) {
-  const [width, setWidth] = useState(384); // 24rem default
+  const [width, setWidth] = useState(384);
   const [isResizing, setIsResizing] = useState(false);
   const sidebarRef = useRef(null);
   const startResizeX = useRef(0);
   const startWidth = useRef(0);
+  const { onlineUsers } = useContext(AuthContext);
 
   useEffect(() => {
     const handleMouseMove = (e) => {
       if (!isResizing) return;
       const diff = startResizeX.current - e.clientX;
-      const newWidth = Math.min(Math.max(startWidth.current + diff, 320), 600); // min 320px, max 600px
+      const newWidth = Math.min(Math.max(startWidth.current + diff, 320), 600);
       setWidth(newWidth);
     };
 
@@ -42,15 +44,14 @@ function RightSidebar({ userSelected, isOpen, onClose }) {
   if (!userSelected) return null;
 
   return (
-    <div 
+    <div
       ref={sidebarRef}
       style={{ width: `${width}px` }}
       className="flex flex-col items-center bg-stone-900/75 backdrop-blur-xl text-stone-100 p-8 rounded-3xl overflow-hidden
         shadow-[0_28px_80px_-30px_rgba(0,0,0,0.65)] transition-colors duration-300 ease-out
         motion-safe:hover:shadow-[0_36px_100px_-34px_rgba(0,0,0,0.70)] relative"
     >
-      {/* Close Button */}
-      <button 
+      <button
         onClick={onClose}
         className="absolute top-4 right-4 p-2 rounded-full hover:bg-stone-800/50 transition-colors"
       >
@@ -59,25 +60,28 @@ function RightSidebar({ userSelected, isOpen, onClose }) {
         </svg>
       </button>
 
-      {/* Profile Pic */}
       <img
         src={userSelected.profilePic || assets.avatar_icon}
         alt="profile"
         className="h-28 w-28 rounded-full border-4 border-amber-500 drop-shadow-[0_8px_22px_rgba(251,146,60,0.35)] mb-4"
       />
 
-      {/* Online Status */}
-      <span className="flex items-center text-green-400 mb-2">
-        <span className="h-3 w-3 bg-green-500 rounded-full mr-2 border-2 border-stone-900"></span>
-        Online
-      </span>
+      {onlineUsers.includes(userSelected._id) ? (
+        <span className="flex items-center text-green-400 mb-2">
+          <span className="h-3 w-3 bg-green-500 rounded-full mr-2 border-2 border-stone-900"></span>
+          Online
+        </span>
+      ) : (
+        <span className="flex items-center text-red-400 mb-2">
+          <span className="h-3 w-3 bg-stone-500 rounded-full mr-2 border-2 border-stone-900"></span>
+          Offline
+        </span>
+      )}
 
-      {/* Name */}
       <p className="text-2xl font-semibold mb-4 drop-shadow-[0_4px_12px_rgba(251,146,60,0.3)]">{userSelected.fullName}</p>
 
       <hr className="w-full border-stone-700 mb-4" />
 
-      {/* User Info Section */}
       <div className="w-full space-y-4">
         <div>
           <h3 className="text-stone-400 text-sm mb-1">Email</h3>
@@ -99,7 +103,6 @@ function RightSidebar({ userSelected, isOpen, onClose }) {
         </div>
       </div>
 
-      {/* Resize Handle */}
       <div
         className="absolute left-0 top-0 bottom-0 w-1 cursor-ew-resize hover:bg-orange-500/20 group"
         onMouseDown={startResize}
