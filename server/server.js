@@ -1,129 +1,64 @@
 import express from 'express';
 import cors from 'cors';
+import dotenv from 'dotenv';
 import http from 'http';
+import { Server } from 'socket.io';
 import { connectDB } from './lib/db_connect.js';
 import userRouter from './routes/userRoutes.js';
 import messageRoutes from './routes/messageRoutes.js';
-import { Server } from 'socket.io';
-import dotenv from 'dotenv';
 
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 5000;
-const FRONTEND_URL = process.env.VITE_FRONTEND_URL || 'http://localhost:5173';
-const server = http.createServer(app);
 
-// CORS configuration (for both local + production)
+// CORS setup
 const corsOptions = {
-  origin: FRONTEND_URL,
+  origin: process.env.VITE_FRONTEND_URL,
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-  allowedHeaders: [
-    'Content-Type',
-    'Authorization',
-    'token',
-    'x-auth-token',
-    'Origin',
-    'Accept'
-  ],
-  exposedHeaders: ['token', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization', 'token', 'x-auth-token', 'Origin', 'Accept']
 };
-
 app.use(cors(corsOptions));
 
-// Handle preflight requests
-app.use((req, res, next) => {
-  if (req.method === 'OPTIONS') {
-    res.header('Access-Control-Allow-Origin', FRONTEND_URL);
-    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
-    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, token, x-auth-token, Origin, Accept');
-    return res.status(200).json({});
-  }
-  next();
-});
-
-// Increase payload limit (for images)
+// Body parsers
 app.use(express.json({ limit: '5mb' }));
 app.use(express.urlencoded({ limit: '5mb', extended: true }));
 
-// Socket.io setup
-export const io = new Server(server, {
-  cors: {
-    origin: FRONTEND_URL,
-    credentials: true
-  }
-});
-
-// Store users online
-export const userSocketMap = {};
-
-io.on('connection', (socket) => {
-  const userId = socket.handshake.query.userId;
-  console.log('User connected:', userId);
-
-  if (userId) {
-    userSocketMap[userId] = socket.id;
-    io.emit('userConnected', userId);
-  }
-
-  socket.on('getOnlineUsers', () => {
-    io.emit('getOnlineUsers', Object.keys(userSocketMap));
-  });
-
-  socket.on('disconnect', () => {
-    console.log('User disconnected:', userId);
-    if (userId) {
-      delete userSocketMap[userId];
-      io.emit('userDisconnected', userId);
-    }
-    io.emit('getOnlineUsers', Object.keys(userSocketMap));
-  });
-});
-
-// Health check route
+// Routes
 app.get('/api/status', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
-
-// API routes
 app.use('/api/user', userRouter);
 app.use('/api/message', messageRoutes);
 
-// Error handler
-app.use((err, req, res, next) => {
-  console.error('Global error:', err);
-  res.status(err.status || 500).json({
-    success: false,
-    message: err.message || 'Internal server error',
-    error: process.env.NODE_ENV === 'development' ? err.stack : undefined
+// DB connect (safe)
+connectDB()
+  .then(() => console.log('✅ MongoDB connected'))
+  .catch((err) => console.error('❌ MongoDB connection error:', err));
+
+// ⚡ Socket.io (optional for local dev)
+if (process.env.NODE_ENV !== 'production') {
+  const server = http.createServer(app);
+  const io = new Server(server, {
+    cors: { origin: process.env.VITE_FRONTEND_URL, credentials: true }
   });
-});
 
-// Handle uncaught errors
-process.on('uncaughtException', (error) => {
-  console.error('Uncaught Exception:', error);
-  process.exit(1);
-});
-
-process.on('unhandledRejection', (error) => {
-  console.error('Unhandled Rejection:', error);
-  process.exit(1);
-});
-
-// Start server
-const startServer = async () => {
-  try {
-    await connectDB();
-    console.log('✅ MongoDB connected successfully');
-    server.listen(PORT, () => {
-      console.log(`🚀 Server running on port ${PORT}`);
-      console.log(`🌐 CORS allowed for: ${FRONTEND_URL}`);
+  const userSocketMap = {};
+  io.on('connection', (socket) => {
+    const userId = socket.handshake.query.userId;
+    if (userId) {
+      userSocketMap[userId] = socket.id;
+      io.emit('getOnlineUsers', Object.keys(userSocketMap));
+    }
+    socket.on('disconnect', () => {
+      delete userSocketMap[userId];
+      io.emit('getOnlineUsers', Object.keys(userSocketMap));
     });
-  } catch (error) {
-    console.error('❌ Failed to start server:', error);
-    process.exit(1);
-  }
-};
+  });
 
-startServer();
+  const PORT = process.env.PORT || 5000;
+  server.listen(PORT, () => console.log(`🚀 Local server running on port ${PORT}`));
+}
+
+// 🟢 Vercel needs this line:
+export default app;
