@@ -4,7 +4,7 @@ import cors from 'cors';
 import http from 'http';
 import { Server as IOServer } from 'socket.io';
 import dotenv from 'dotenv';
-
+import friendRequestsRoutes from "./routes/friendRequestsRoutes.js";
 import { connectDB } from './lib/db_connect.js';
 import userRouter from './routes/userRoutes.js';
 import messageRoutes from './routes/messageRoutes.js';
@@ -27,9 +27,9 @@ const corsOptions = {
 };
 app.use(cors(corsOptions));
 
-// Body parsers
-app.use(express.json({ limit: '5mb' }));
-app.use(express.urlencoded({ limit: '5mb', extended: true }));
+// Body parsers (increased limits for file uploads)
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ limit: '50mb', extended: true, parameterLimit: 50000 }));
 
 // Health
 app.get('/api/status', (req, res) => {
@@ -39,7 +39,7 @@ app.get('/api/status', (req, res) => {
 // Routes
 app.use('/api/user', userRouter);
 app.use('/api/message', messageRoutes);
-
+app.use('/api/friend-requests', friendRequestsRoutes);
 // Error handler
 app.use((err, req, res, next) => {
   console.error('Global error:', err);
@@ -76,26 +76,72 @@ if (SHOULD_START_SERVER) {
     // optional: pingInterval / timeout adjustments for your environment
   });
 
-  // Socket.io handlers
+  // Socket.io handlers (optimized for better online status)
   io.on('connection', (socket) => {
     const userId = socket.handshake.query?.userId;
     console.log('Socket connected:', socket.id, 'userId:', userId);
 
-    if (userId) {
+    if (userId && userId !== 'undefined') {
+      // Store socket mapping
       userSocketMap[userId] = socket.id;
-      io.emit('getOnlineUsers', Object.keys(userSocketMap));
+      
+      // Immediately emit updated online users to all clients
+      const onlineUserIds = Object.keys(userSocketMap);
+      io.emit('getOnlineUsers', onlineUserIds);
+      
+      // Also emit specific user connected event
+      socket.broadcast.emit('userConnected', userId);
+      
+      console.log(`User ${userId} is now online. Total online: ${onlineUserIds.length}`);
     }
 
+    // Handle request for online users
     socket.on('getOnlineUsers', () => {
-      socket.emit('getOnlineUsers', Object.keys(userSocketMap));
+      const onlineUserIds = Object.keys(userSocketMap);
+      socket.emit('getOnlineUsers', onlineUserIds);
     });
 
+    // Handle disconnect
     socket.on('disconnect', () => {
-      if (userId && userSocketMap[userId]) {
+      if (userId && userId !== 'undefined' && userSocketMap[userId]) {
         delete userSocketMap[userId];
+        
+        // Emit updated online users to all clients
+        const onlineUserIds = Object.keys(userSocketMap);
+        io.emit('getOnlineUsers', onlineUserIds);
+        
+        // Also emit specific user disconnected event
+        socket.broadcast.emit('userDisconnected', userId);
+        
+        console.log(`User ${userId} disconnected. Total online: ${onlineUserIds.length}`);
       }
-      io.emit('getOnlineUsers', Object.keys(userSocketMap));
-      console.log('Socket disconnected:', socket.id);
+    });
+
+    // Handle manual status updates
+    socket.on('updateOnlineStatus', () => {
+      const onlineUserIds = Object.keys(userSocketMap);
+      io.emit('getOnlineUsers', onlineUserIds);
+    });
+
+    // Handle recording events
+    socket.on('recordingStarted', (data) => {
+      const { receiverId } = data;
+      const receiverSocketId = userSocketMap[receiverId];
+      
+      if (receiverSocketId) {
+        io.to(receiverSocketId).emit('userStartedRecording', { senderId: userId });
+        console.log(`User ${userId} started recording for ${receiverId}`);
+      }
+    });
+
+    socket.on('recordingStopped', (data) => {
+      const { receiverId } = data;
+      const receiverSocketId = userSocketMap[receiverId];
+      
+      if (receiverSocketId) {
+        io.to(receiverSocketId).emit('userStoppedRecording', { senderId: userId });
+        console.log(`User ${userId} stopped recording for ${receiverId}`);
+      }
     });
   });
 

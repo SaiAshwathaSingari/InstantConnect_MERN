@@ -8,6 +8,7 @@ import { Toaster } from 'react-hot-toast'
 import { AuthContext } from '../context/AuthContext'
 import { ChatProvider } from '../context/ChatContext'
 import { useContext } from 'react'
+import AddFriendsPage from './pages/AddFriendsPage'
 function App() {
   const {authUser} = useContext(AuthContext);
   return (
@@ -33,6 +34,18 @@ function App() {
           authUser ? (
             <ChatProvider>
               <ProfilePage/>
+            </ChatProvider>
+          ) : (
+            <Navigate to={"/login"}/>
+          )
+        }
+      />
+      <Route 
+        path='/add-friends' 
+        element={
+          authUser ? (
+            <ChatProvider>
+              <AddFriendsPage/>
             </ChatProvider>
           ) : (
             <Navigate to={"/login"}/>
