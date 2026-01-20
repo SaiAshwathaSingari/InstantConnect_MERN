@@ -1,61 +1,86 @@
-InstaConnect 📸
-InstaConnect is a full-stack social media platform built using the MERN stack. It allows users to connect, share images via Cloudinary, and leverages a FastAPI service for backend processing.
+# InstaConnect
 
-Shutterstock
+A full-stack social-style application built with the MERN stack: MongoDB, Express, React (Vite), and Node.js.
 
-🛠 Setup Instructions
-1. Server Setup (Backend)
-Navigate to the server folder: cd server
+---
 
-Install dependencies: npm install
+## Requirements
 
-Create a .env file in the server directory.
+- Node.js and npm or yarn  
+- MongoDB (local or hosted)  
+- Optional: Cloudinary account for image uploads  
+- Optional: FastAPI or other microservice
 
-Important: Do not use the default values. Create your own accounts and paste your credentials here:
+---
 
-Code snippet
+## Environment Variables
+
+Create **two `.env` files**: one for the server and one for the client.
+
+### server/.env
+
+```env
 MONGODB_URI=mongodb://127.0.0.1:27017/instaconnect
 PORT=5000
-JWT_SECRET=your_own_secret_key
+JWT_SECRET=your_jwt_secret
 VITE_FRONTEND_URL=http://localhost:5173
 
-# Cloudinary Config (Get these from cloudinary.com)
-CLOUDINAR_CLOUD_NAME='your_name'
-CLOUDINARY_API_KEY='your_key'
-CLOUDINARY_API_SECRET='your_secret'
+CLOUDINARY_CLOUD_NAME=your_cloud_name
+CLOUDINARY_API_KEY=your_api_key
+CLOUDINARY_API_SECRET=your_api_secret
 
-# FastAPI Config
 FASTAPI_URL=http://127.0.0.1:8000
 FASTAPI_TIMEOUT=10000
-2. Client Setup (Frontend)
-Navigate to the client folder: cd client
-
-Install dependencies: npm install
-
-Create a .env file in the client directory.
-
-Add the following line to point to your backend:
-
-Code snippet
+client/.env
 VITE_BACKEND_URL=http://localhost:5000
-🚀 Running the Application
-Start the Backend:
+Installation & Running
+Start MongoDB
+Ensure MongoDB is running locally or update MONGODB_URI for a hosted database.
 
-Bash
+Run Server
 cd server
-npm start
-Start the Frontend:
-
-Bash
-cd client
+npm install
 npm run dev
-Start FastAPI: Ensure your FastAPI server is running on port 8000.
+Run Client
+cd client
+npm install
+npm run dev
+Frontend runs on http://localhost:5173 by default.
 
-📝 Features
-User Auth: Secure JWT-based login.
+Project Structure
+root/
+├─ server/
+│  ├─ controllers/
+│  ├─ models/
+│  ├─ routes/
+│  ├─ middleware/
+│  ├─ utils/
+│  ├─ index.js / app.js
+│  └─ .env
+└─ client/
+   ├─ src/
+   ├─ public/
+   ├─ vite.config.js
+   └─ .env
+Notes
+Do not commit .env files
 
-Image Hosting: Cloudinary integration for fast image delivery.
+Add .env to .gitignore
 
-FastAPI Integration: Connection to a specialized Python API.
+Use environment variables in production hosting platforms
 
-Responsive UI: Built with React and modern CSS.
+Update frontend/backend URLs if ports change
+
+Optional .env.example
+server/.env.example
+MONGODB_URI=your_mongodb_uri
+PORT=5000
+JWT_SECRET=your_jwt_secret
+VITE_FRONTEND_URL=http://localhost:5173
+CLOUDINARY_CLOUD_NAME=your_cloud_name
+CLOUDINARY_API_KEY=your_api_key
+CLOUDINARY_API_SECRET=your_api_secret
+FASTAPI_URL=http://127.0.0.1:8000
+FASTAPI_TIMEOUT=10000
+client/.env.example
+VITE_BACKEND_URL=http://localhost:5000
